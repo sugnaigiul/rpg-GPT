@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <link rel="stylesheet" href="style.css">
+
+  <head>
+    <title>AI Story Adventure</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8" />
+  </head>
+
+  <body>
+    <h1>AI Story Adventure</h1>
+    
+    <div class="setup-container">
+      <p>Step 1: Initialize AI Storyteller</p>
+      <div class="download-container">
+        <select id="model-selection"></select>
+        <button id="download">Download Model</button>
+      </div>
+      <p id="download-status" class="hidden"></p>
+    </div>
+
+    <div class="genre-container hidden">
+      <p>Step 2: Choose Your Story Genre</p>
+      <select id="genre-selection">
+        <option value="fantasy">Fantasy Adventure</option>
+        <option value="scifi">Science Fiction</option>
+        <option value="horror">Horror</option>
+        <option value="mystery">Mystery</option>
+      </select>
+      <button id="start-story">Begin Your Journey</button>
+    </div>
+
+    <div class="story-container hidden">
+      <div id="story-box" class="story-box"></div>
+      <div id="choices-container" class="choices-container">
+        <button class="choice-btn" id="choice1"></button>
+        <button class="choice-btn" id="choice2"></button>
+        <button class="choice-btn" id="choice3"></button>
+        <button class="choice-btn" id="choice4"></button>
+      </div>
+    </div>
+
+    <script src="./script.js" type="module"></script>
+  </body>
+</html>
+
