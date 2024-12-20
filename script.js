@@ -8,11 +8,20 @@ class StoryGame {
                 role: "system",
             }
         ];
+        
+        this.summarizerMessages = [
+            {
+                content: "You are a concise story context summarizer. Your job is to take user input about their desired story setting and create a brief, clear 2-3 sentence summary that captures the essential elements. Focus on the key themes, setting, and tone.",
+                role: "system",
+            }
+        ];
+        
         this.engine = new webllm.MLCEngine();
-        this.selectedModel = "Llama-3-8B-Instruct-q4f32_1-MLC-1k"; // Base model
+        this.selectedModel = "Llama-3-8B-Instruct-q4f32_1-MLC-1k";
         this.initializeElements();
         this.setupEventListeners();
         this.setupModelSelection();
+        this.currentSummary = null;
     }
 
     initializeElements() {
@@ -31,6 +40,13 @@ class StoryGame {
             document.getElementById("choice3"),
             document.getElementById("choice4")
         ];
+        // Add new elements to existing initialization
+        this.contextInput = document.getElementById("context-input");
+        this.generateSummaryBtn = document.getElementById("generate-summary");
+        this.summaryContainer = document.getElementById("summary-container");
+        this.summaryText = document.getElementById("summary-text");
+        this.acceptSummaryBtn = document.getElementById("accept-summary");
+        this.rejectSummaryBtn = document.getElementById("reject-summary");
     }
 
     setupEventListeners() {
@@ -39,6 +55,10 @@ class StoryGame {
         this.choiceButtons.forEach((button, index) => {
             button.addEventListener("click", () => this.handleChoice(index));
         });
+        // Add new event listeners
+        this.generateSummaryBtn.addEventListener("click", () => this.generateContextSummary());
+        this.acceptSummaryBtn.addEventListener("click", () => this.acceptSummary());
+        this.rejectSummaryBtn.addEventListener("click", () => this.rejectSummary());
     }
 
     setupModelSelection() {
@@ -79,10 +99,16 @@ class StoryGame {
     }
 
     async startStory() {
-        const genre = this.genreSelect.value;
+        if (!this.currentSummary) {
+            alert("Please generate and accept a context summary first.");
+            return;
+        }
+
         this.storyContainer.classList.remove("hidden");
         
-        const prompt = `Create the opening of a first-person ${genre} RPG adventure. 
+        const prompt = `Using this context: ${this.currentSummary}
+            
+            Create the opening of a first-person RPG adventure based on this setting.
             Describe the player's initial situation in second person perspective ("you"), 
             setting the scene and immediate circumstance they find themselves in. 
             Keep it to 2-3 sentences and then provide exactly 4 possible choices for what to do next.
@@ -90,9 +116,6 @@ class StoryGame {
             Make sure the choices feel like actual RPG actions (like "Search the room", "Talk to the merchant", 
             "Draw your sword", etc.) rather than narrative choices.
 
-            Some choices should be good, some should be bad, and some should be neutral.
-            Some choices should have a chance to fail.
-            
             Format the choices as: CHOICES: 1)... 2)... 3)... 4)...`;
 
         await this.generateStorySegment(prompt);
@@ -232,6 +255,52 @@ CHOICES:
         this.choiceButtons.forEach((button, index) => {
             button.textContent = choices[index] || `Choice ${index + 1}`;
         });
+    }
+
+    async generateContextSummary() {
+        const userContext = this.contextInput.value.trim();
+        if (!userContext) {
+            alert("Please enter a context for your story.");
+            return;
+        }
+
+        try {
+            const prompt = `Summarize the following story context in 2-3 clear, concise sentences that capture the essential elements: "${userContext}"`;
+            
+            const message = {
+                content: prompt,
+                role: "user"
+            };
+            this.summarizerMessages.push(message);
+
+            const completion = await this.engine.chat.completions.create({
+                messages: this.summarizerMessages,
+            });
+
+            const summary = completion.choices[0].message.content;
+            this.currentSummary = summary;
+            
+            this.summaryText.textContent = summary;
+            this.summaryContainer.classList.remove("hidden");
+            this.startStoryBtn.classList.add("hidden");
+        } catch (error) {
+            console.error("Error generating summary:", error);
+            this.summaryText.textContent = "An error occurred while generating the summary. Please try again.";
+        }
+    }
+
+    acceptSummary() {
+        this.summaryContainer.classList.add("hidden");
+        this.startStoryBtn.classList.remove("hidden");
+        this.contextInput.disabled = true;
+        this.generateSummaryBtn.disabled = true;
+    }
+
+    rejectSummary() {
+        this.summaryContainer.classList.add("hidden");
+        this.currentSummary = null;
+        this.contextInput.disabled = false;
+        this.generateSummaryBtn.disabled = false;
     }
 }
 

@@ -105,3 +105,40 @@ button:disabled {
     box-shadow: 0 5px 15px rgba(0, 195, 255, 0.2);
 }
 
+#context-input {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #444;
+    margin-bottom: 15px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+#summary-container {
+    background-color: #2a2a2a;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    border: 1px solid #3a3a3a;
+}
+
+#summary-text {
+    margin: 10px 0;
+    line-height: 1.6;
+    color: #00c3ff;
+}
+
+.summary-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.hidden {
+    display: none;
+}
+

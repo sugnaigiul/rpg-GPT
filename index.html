@@ -21,14 +21,18 @@
     </div>
 
     <div class="genre-container hidden">
-      <p>Step 2: Choose Your Story Genre</p>
-      <select id="genre-selection">
-        <option value="fantasy">Fantasy Adventure</option>
-        <option value="scifi">Science Fiction</option>
-        <option value="horror">Horror</option>
-        <option value="mystery">Mystery</option>
-      </select>
-      <button id="start-story">Begin Your Journey</button>
+      <p>Step 2: Describe Your Story Context</p>
+      <textarea id="context-input" placeholder="Describe the world, setting, or story you'd like to experience..."></textarea>
+      <button id="generate-summary">Generate Summary</button>
+      <div id="summary-container" class="hidden">
+        <p>Generated Summary:</p>
+        <div id="summary-text"></div>
+        <div class="summary-buttons">
+          <button id="accept-summary">Accept</button>
+          <button id="reject-summary">Try Again</button>
+        </div>
+      </div>
+      <button id="start-story" class="hidden">Begin Your Journey</button>
     </div>
 
     <div class="story-container hidden">
