@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 
   <head>
     <title>AI Story Adventure</title>
@@ -10,20 +10,30 @@
 
   <body>
     <h1>AI Story Adventure</h1>
-    
+
     <div class="setup-container">
       <p>Step 1: Initialize AI Storyteller</p>
       <div class="download-container">
         <select id="model-selection"></select>
         <button id="download">Download Model</button>
       </div>
-      <p id="download-status" class="hidden"></p>
+      <div id="model-loading-indicator" class="loading-indicator hidden">
+        <div class="spinner"></div>
+        <p id="download-status" class="hidden"></p>
+      </div>
     </div>
 
     <div class="genre-container hidden">
       <p>Step 2: Describe Your Story Context</p>
-      <textarea id="context-input" placeholder="Describe the world, setting, or story you'd like to experience..."></textarea>
+      <textarea
+        id="context-input"
+        placeholder="Describe the world, setting, or story you'd like to experience..."
+      ></textarea>
       <button id="generate-summary">Generate Summary</button>
+      <div id="loading-indicator" class="loading-indicator hidden">
+        <div class="spinner"></div>
+        <p>Generating your story summary...</p>
+      </div>
       <div id="summary-container" class="hidden">
         <p>Generated Summary:</p>
         <div id="summary-text"></div>
@@ -48,4 +58,3 @@
     <script src="./script.js" type="module"></script>
   </body>
 </html>
-
