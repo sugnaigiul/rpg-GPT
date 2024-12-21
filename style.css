@@ -170,3 +170,19 @@ button:disabled {
 .hidden {
   display: none;
 }
+
+.journey-button {
+  display: block;
+  width: 100%;
+  padding: 20px;
+  font-size: 24px;
+  margin: 30px 0;
+  background: linear-gradient(135deg, #2196f3, #1565c0);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.journey-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(33, 150, 243, 0.4);
+}

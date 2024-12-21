@@ -120,6 +120,7 @@ class StoryGame {
       return;
     }
 
+    this.startStoryBtn.style.display = "none";
     this.storyContainer.classList.remove("hidden");
 
     const prompt = `Using this context: ${this.currentSummary}
@@ -286,9 +287,12 @@ CHOICES:
       return;
     }
 
+    // Disable input and button
+    this.contextInput.disabled = true;
+    this.generateSummaryBtn.disabled = true;
+
     // Show loading indicator
     this.loadingIndicator.classList.remove("hidden");
-    document.getElementById("generate-summary").disabled = true;
 
     try {
       const prompt = `Summarize the following story context in 2-3 clear, concise sentences that capture the essential elements: "${userContext}"`;
@@ -313,16 +317,20 @@ CHOICES:
       console.error("Error generating summary:", error);
       this.summaryText.textContent =
         "An error occurred while generating the summary. Please try again.";
+
+      // Re-enable input and button on error
+      this.contextInput.disabled = false;
+      this.generateSummaryBtn.disabled = false;
     } finally {
       // Hide loading indicator
       this.loadingIndicator.classList.add("hidden");
-      document.getElementById("generate-summary").disabled = false;
     }
   }
 
   acceptSummary() {
     this.summaryContainer.classList.add("hidden");
     this.startStoryBtn.classList.remove("hidden");
+    this.startStoryBtn.style.display = "block";
     this.contextInput.disabled = true;
     this.generateSummaryBtn.disabled = true;
   }
