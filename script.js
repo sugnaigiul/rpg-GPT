@@ -5,7 +5,7 @@ class StoryGame {
     this.messages = [
       {
         content:
-          'You are an expert RPG game master creating an immersive first-person adventure. Write in second person perspective ("you") and include basic RPG elements like character interactions and decisions. Provide exactly 4 choices for the player after each segment. Keep descriptions vivid but concise.',
+          'You are an expert RPG game master creating an immersive first-person adventure. Write in second person perspective ("you") and include basic RPG elements like character interactions and decisions. Provide exactly 4 choices for the player after each segment. Keep descriptions vivid but concise. When the story reaches a natural conclusion (victory, death, or major story resolution), end it with "ENDING:" followed by a brief epilogue explaining the conclusion.',
         role: "system",
       },
     ];
@@ -139,33 +139,44 @@ class StoryGame {
   }
 
   parseResponse(response) {
-    if (!response) return ["", []];
+    if (!response) return ["", [], false];
 
     try {
-      // Split into story and choices sections
-      const storyPart = response
-        .split("CHOICES:")[0]
-        .replace(/^STORY:\s*/i, "")
-        .trim();
+      // Check if this is an ending
+      const isEnding = response.includes("ENDING:");
 
-      const choicesPart = response.split("CHOICES:")[1] || "";
+      // Split into story and choices/ending sections
+      let storyPart;
+      let choices = [];
 
-      let choices = choicesPart
-        .split(/\d\)/)
-        .filter((choice) => choice.trim())
-        .map((choice) => choice.trim())
-        .slice(0, 4);
+      if (isEnding) {
+        // For endings, take everything after "ENDING:" as the final text
+        storyPart = response.split("ENDING:")[1].trim();
+      } else {
+        // Normal story segment processing
+        storyPart = response
+          .split("CHOICES:")[0]
+          .replace(/^STORY:\s*/i, "")
+          .trim();
+        const choicesPart = response.split("CHOICES:")[1] || "";
+        choices = choicesPart
+          .split(/\d\)/)
+          .filter((choice) => choice.trim())
+          .map((choice) => choice.trim())
+          .slice(0, 4);
 
-      while (choices.length < 4) {
-        choices.push(`Choice ${choices.length + 1}`);
+        while (choices.length < 4) {
+          choices.push(`Choice ${choices.length + 1}`);
+        }
       }
 
-      return [storyPart, choices];
+      return [storyPart, choices, isEnding];
     } catch (error) {
       console.error("Error parsing response:", error);
       return [
         "An error occurred while generating the story.",
         ["Try again", "Restart", "Continue anyway", "Start over"],
+        false,
       ];
     }
   }
@@ -181,31 +192,39 @@ class StoryGame {
     const prompt = `Continue the first-person RPG story based on the player choosing: "${choiceText}"
 
 Write the next part in second person perspective ("you"), describing the immediate results 
-of their action and the new situation they face (2-3 sentences). Then provide 4 new 
-numbered choices that represent concrete actions the player can take.
+of their action and the new situation they face (2-3 sentences). 
 
-Format your response as:
+If this action leads to a conclusion (victory, death, or major story resolution), 
+respond with "ENDING:" followed by a final epilogue.
+
+Otherwise, provide 4 new numbered choices that represent concrete actions the player can take.
+
+Format your response as either:
 
 STORY: [Your story paragraph here]
 CHOICES:
 1) [First action]
 2) [Second action]
 3) [Third action]
-4) [Fourth action]`;
+4) [Fourth action]
+
+OR
+
+STORY: [Your story paragraph here]
+ENDING: [Final epilogue text]`;
 
     await this.generateStorySegment(prompt);
   }
 
   updateStoryText(text) {
-    const [story] = this.parseResponse(text);
+    const [story, _, isEnding] = this.parseResponse(text);
     if (story && story.trim()) {
-      const cleanStory = story
-        .replace(/^STORY:\s*/i, "")
-        .split("CHOICES:")[0]
-        .trim();
+      const cleanStory = story.trim();
 
       if (!this.storyBox.querySelector(".current-segment")) {
-        this.storyBox.innerHTML += `<p class="current-segment">${cleanStory}</p>`;
+        // If it's an ending, add a special ending class for styling
+        const className = isEnding ? "ending-segment" : "current-segment";
+        this.storyBox.innerHTML += `<p class="${className}">${cleanStory}</p>`;
       } else {
         const currentSegment = this.storyBox.querySelector(".current-segment");
         currentSegment.textContent = cleanStory;
@@ -217,7 +236,7 @@ CHOICES:
     try {
       this.choiceButtons.forEach((btn) => {
         btn.disabled = true;
-        btn.textContent = ""; // Clear initially
+        btn.textContent = "";
       });
 
       const message = {
@@ -238,14 +257,25 @@ CHOICES:
       }
 
       let choicesDetected = false;
+      let endingDetected = false;
 
       for await (const chunk of completion) {
         const curDelta = chunk.choices[0].delta.content;
         if (curDelta) {
           curMessage += curDelta;
 
-          // Check if we've hit the CHOICES section
-          if (!choicesDetected && curMessage.includes("CHOICES:")) {
+          // Check for ending or choices
+          if (!endingDetected && curMessage.includes("ENDING:")) {
+            endingDetected = true;
+            // Hide choice buttons when ending is detected
+            document
+              .getElementById("choices-container")
+              .classList.add("hidden");
+          } else if (
+            !choicesDetected &&
+            !endingDetected &&
+            curMessage.includes("CHOICES:")
+          ) {
             choicesDetected = true;
             this.choiceButtons.forEach((btn) => {
               btn.textContent = "Generating choice...";
@@ -253,11 +283,8 @@ CHOICES:
             });
           }
 
-          // Only update story text if it's not the "CHOICES:" marker
-          const storyPart = curMessage.split("CHOICES:")[0];
-          if (storyPart) {
-            this.updateStoryText(storyPart);
-          }
+          // Update story text
+          this.updateStoryText(curMessage);
         }
       }
 
@@ -267,17 +294,22 @@ CHOICES:
         role: "assistant",
       });
 
-      const [story, choices] = this.parseResponse(finalMessage);
+      const [story, choices, isEnding] = this.parseResponse(finalMessage);
 
       // Update the final story segment
       const currentSegment = this.storyBox.querySelector(".current-segment");
       if (currentSegment) {
-        currentSegment.textContent = story.replace(/^STORY:\s*/i, "");
+        currentSegment.textContent = story;
         currentSegment.classList.remove("current-segment");
       }
 
-      this.updateChoices(choices);
-      this.choiceButtons.forEach((btn) => (btn.disabled = false));
+      if (!isEnding) {
+        this.updateChoices(choices);
+        this.choiceButtons.forEach((btn) => (btn.disabled = false));
+      } else {
+        // Hide choices container when story ends
+        document.getElementById("choices-container").classList.add("hidden");
+      }
     } catch (error) {
       console.error("Error generating story:", error);
       this.storyBox.innerHTML += `<p>An error occurred while generating the story.</p>`;
