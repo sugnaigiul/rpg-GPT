@@ -215,7 +215,10 @@ CHOICES:
 
   async generateStorySegment(prompt) {
     try {
-      this.choiceButtons.forEach((btn) => (btn.disabled = true));
+      this.choiceButtons.forEach((btn) => {
+        btn.disabled = true;
+        btn.textContent = ""; // Clear initially
+      });
 
       const message = {
         content: prompt,
@@ -234,13 +237,26 @@ CHOICES:
         previousSegment.classList.remove("current-segment");
       }
 
+      let choicesDetected = false;
+
       for await (const chunk of completion) {
         const curDelta = chunk.choices[0].delta.content;
         if (curDelta) {
           curMessage += curDelta;
 
-          if (!curMessage.includes("CHOICES:")) {
-            this.updateStoryText(curMessage);
+          // Check if we've hit the CHOICES section
+          if (!choicesDetected && curMessage.includes("CHOICES:")) {
+            choicesDetected = true;
+            this.choiceButtons.forEach((btn) => {
+              btn.textContent = "Generating choice...";
+              btn.classList.add("generating");
+            });
+          }
+
+          // Only update story text if it's not the "CHOICES:" marker
+          const storyPart = curMessage.split("CHOICES:")[0];
+          if (storyPart) {
+            this.updateStoryText(storyPart);
           }
         }
       }
@@ -276,6 +292,7 @@ CHOICES:
 
   updateChoices(choices) {
     this.choiceButtons.forEach((button, index) => {
+      button.classList.remove("generating");
       button.textContent = choices[index] || `Choice ${index + 1}`;
     });
   }

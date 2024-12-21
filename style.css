@@ -186,3 +186,8 @@ button:disabled {
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(33, 150, 243, 0.4);
 }
+
+.choice-btn.generating {
+  font-style: italic;
+  color: #888;
+}
