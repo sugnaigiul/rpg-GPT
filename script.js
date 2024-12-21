@@ -19,7 +19,7 @@ class StoryGame {
     ];
 
     this.engine = new webllm.MLCEngine();
-    this.selectedModel = "Llama-3-8B-Instruct-q4f32_1-MLC-1k";
+    this.selectedModel = "Llama-3.2-3B-Instruct-q4f32_1-MLC";
     this.initializeElements();
     this.setupEventListeners();
     this.setupModelSelection();
@@ -281,12 +281,7 @@ CHOICES:
     } catch (error) {
       console.error("Error generating story:", error);
       this.storyBox.innerHTML += `<p>An error occurred while generating the story.</p>`;
-      this.updateChoices([
-        "Try again",
-        "Restart",
-        "Continue anyway",
-        "Start over",
-      ]);
+      this.updateChoices(["Try again", "Try again", "Try again", "Try again"]);
     }
   }
 
