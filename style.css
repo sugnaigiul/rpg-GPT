@@ -2,7 +2,7 @@ body {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
-  font-family: "Segoe UI", "Roboto", sans-serif;
+  font-family: "Source Code Pro", serif;
   background-color: #1a1a1a;
   color: #e0e0e0;
 }
@@ -198,4 +198,8 @@ button:disabled {
   padding: 20px;
   border-left: 3px solid #ffd700;
   margin-top: 20px;
+}
+
+* {
+  font-family: inherit;
 }
